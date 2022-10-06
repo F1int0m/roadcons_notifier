@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    command: 'python -u server.py'
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_PASSWORD=change
+      - POSTGRES_USER=roadcons
+      - POSTGRES_DB=roadcons
+    ports:
+      - '5432:5432'
+

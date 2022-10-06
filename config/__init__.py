@@ -1,10 +1,19 @@
 # flake8: noqa
 import ast
+import logging
 import os
+import sys
 
 from dotenv import load_dotenv
 
 from .base import *
+
+logging.basicConfig(
+    stream=sys.stdout,
+    level=logging.INFO,
+    format='[%(asctime)s] {%(name)s} %(levelname)s - %(message)s'
+)
+log = logging.getLogger(__name__)
 
 try:
     from .local import *
