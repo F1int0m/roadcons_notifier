@@ -15,5 +15,6 @@ DB_PORT = 5432
 API_KEY = '123'
 DISCOVERY_URL = 'https://sheets.googleapis.com/$discovery/rest?version=v4'
 
-JOB_UPDATE_INTERVAL = 10   # в секундах
+DEFAULT_JOB_NAME = 'Update_projects_job'
+JOB_UPDATE_INTERVAL = 60 * 20  # в секундах
 NOTIFICATION_DELAY = 10

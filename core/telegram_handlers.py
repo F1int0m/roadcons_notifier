@@ -56,16 +56,16 @@ async def project_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def start_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.job_queue.run_repeating(
         callback=update_projects,
+        name=config.DEFAULT_JOB_NAME,
         interval=config.JOB_UPDATE_INTERVAL,
     )
     await update.message.reply_text('Начал следить за всеми проектами')
 
 
-async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    from jobs.telegram_jobs import send_message
-    context.job_queue.run_once(
-        callback=send_message,
-        when=10,
-        chat_id=update.message.chat_id,
-        data='123321'
-    )
+async def stop_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    current_jobs = context.job_queue.get_jobs_by_name(config.DEFAULT_JOB_NAME)
+    if current_jobs:
+        for job in current_jobs:
+            job.schedule_removal()
+
+    await update.message.reply_text('Прекратил следить за всеми проектами')
