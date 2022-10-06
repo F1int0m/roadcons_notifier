@@ -19,6 +19,7 @@ def main():
         CommandHandler(command=['project_load'], callback=telegram_handlers.project_load),
         CommandHandler(command=['project_register'], callback=telegram_handlers.project_register),
         CommandHandler(command=['start_jobs'], callback=telegram_handlers.start_jobs),
+        CommandHandler(command=['stop_jobs'], callback=telegram_handlers.stop_jobs),
     ]
 
     application.add_handlers(handlers=handlers)
