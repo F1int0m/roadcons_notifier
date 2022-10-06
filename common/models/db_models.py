@@ -31,6 +31,4 @@ class LastKnownState(BaseModel):
     street_name = CharField()
     last_known_status = CharField()
 
-    error_description = CharField()
-
     last_seen_at = DateTimeField()

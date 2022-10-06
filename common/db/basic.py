@@ -14,6 +14,22 @@ class BaseModel(Model):
         async with manager.atomic():
             return await manager.create(cls, **params)
 
+    def is_changed(self, **kwargs):
+        for name, value in kwargs.items():
+            current_value = getattr(self, name)
+            if current_value != value:
+                return True
+        return False
+
+    async def update_instance(self, **params):
+        new_params = {fld: val for fld, val in params.items() if fld in self._meta.fields}
+        changed = self.is_changed(**new_params)
+        if changed:
+            for fld, value in new_params.items():
+                setattr(self, fld, value)
+            await manager.update(self)
+        return changed
+
 
 class EnumField(CharField):
 

@@ -4,6 +4,7 @@ from telegram.ext import Application, CommandHandler
 
 import config
 from common import db
+from common.clients.google_sheet_client import GoogleSheetClient
 from core import telegram_handlers
 
 log = getLogger(__name__)
@@ -17,14 +18,19 @@ def main():
         CommandHandler(command=['start', 'help'], callback=telegram_handlers.start),
         CommandHandler(command=['project_load'], callback=telegram_handlers.project_load),
         CommandHandler(command=['project_register'], callback=telegram_handlers.project_register),
+        CommandHandler(command=['start_jobs'], callback=telegram_handlers.start_jobs),
     ]
 
     application.add_handlers(handlers=handlers)
-    application.add_error_handler(callback=telegram_handlers.error_handler)
 
     log.info('DB init')
     application.bot_data.update(
         {'db': db.start()}
+    )
+
+    log.info('Client init')
+    application.bot_data.update(
+        {'google_sheet_client': GoogleSheetClient()}
     )
 
     log.info('Init done')

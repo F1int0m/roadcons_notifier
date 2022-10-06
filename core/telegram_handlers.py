@@ -1,12 +1,13 @@
-import json
-import traceback
 from logging import getLogger
 
+from peewee import IntegrityError
 from telegram import Update
 from telegram.ext import ContextTypes
 
-from common.utils import get_project_id_from_url
+import config
+from common.utils import get_project_id_from_url, parse_args_to_link_with_name
 from core import project_service, user_service
+from jobs.telegram_jobs import update_projects
 
 log = getLogger(__name__)
 
@@ -15,40 +16,27 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text('Привет. Я мониторю изменение статусов улиц')
 
 
-async def error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
-    log.info(f'Exception while handling an update:{context.error}')
-
-    tb_list = traceback.format_exception(None, context.error, context.error.__traceback__)
-    tb_string = ''.join(tb_list)
-
-    update_str = update.to_dict() if isinstance(update, Update) else str(update)
-    message = (
-        'Catch error\n'
-        f'Update = {json.dumps(update_str, indent=2, ensure_ascii=False)}\n'
-        f'Traceback:\n{tb_string}'
-    )
-
-    await context.bot.send_message(chat_id=update.message.chat_id, text=message)
-
-
 async def project_load(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        sheet_link, project_name = context.args
+        sheet_link, project_name = parse_args_to_link_with_name(context.args)
     except ValueError:
         await update.message.reply_text('Неверное число аргументов')
         return
 
-    await project_service.project_create(
-        project_name=project_name,
-        project_id=get_project_id_from_url(google_sheet_url=sheet_link),
-    )
-
+    try:
+        await project_service.project_create(
+            project_name=project_name,
+            project_id=get_project_id_from_url(google_sheet_url=sheet_link),
+        )
+    except IntegrityError:
+        await update.message.reply_text('Проект уже существует')
+        return
     await update.message.reply_text('Проект создан')
 
 
 async def project_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        sheet_link, username = context.args
+        sheet_link, username = parse_args_to_link_with_name(context.args)
     except ValueError:
         await update.message.reply_text('Неверное число аргументов')
         return
@@ -63,3 +51,21 @@ async def project_register(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     await update.message.reply_text(f'Добавил в список отслеживания к проекту {project.project_name}')
+
+
+async def start_jobs(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.job_queue.run_repeating(
+        callback=update_projects,
+        interval=config.JOB_UPDATE_INTERVAL,
+    )
+    await update.message.reply_text('Начал следить за всеми проектами')
+
+
+async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from jobs.telegram_jobs import send_message
+    context.job_queue.run_once(
+        callback=send_message,
+        when=10,
+        chat_id=update.message.chat_id,
+        data='123321'
+    )
