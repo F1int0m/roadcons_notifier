@@ -19,7 +19,7 @@ LIST_TO_USER_COLUM = {
 
 LIST_TO_STATUS_COLUMN = {
     GoogleSheetEnums.kameralka: 'H:H',
-    GoogleSheetEnums.podd: 'F:F',
+    GoogleSheetEnums.podd: 'H:H',
     GoogleSheetEnums.avtocad: 'R:R',
 }
 LIST_TO_STREET_NAME = {
